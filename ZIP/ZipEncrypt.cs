@@ -36,9 +36,9 @@ namespace Zip
         private int maxBlockSize;
 
         /// <summary>
-        /// Current size of the block encoding
+        /// Current size of the block code
         /// </summary>
-        private int codeSize;
+        private int blockCodeSize;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ZipEncrypt"/> class.
@@ -102,16 +102,16 @@ namespace Zip
                 bool newBlockFound = nextBlockSize < remaining.Length;
 
                 // Add the next encrypted block to the result
-                string newBlockIndex = this.table[remaining.Substring(0, nextBlockSize)].ToString().PadLeft(this.codeSize, '0');
+                string newBlockIndex = this.table[remaining.Substring(0, nextBlockSize)].ToString().PadLeft(this.blockCodeSize, '0');
                 result += newBlockIndex;
 
                 // Add new block to the table
                 if (newBlockFound)
                 {
                     // Update current block length
-                    if (this.nextBlockIndex.ToString().Length > this.codeSize)
+                    if (this.nextBlockIndex.ToString().Length > this.blockCodeSize)
                     {
-                        ++this.codeSize;
+                        ++this.blockCodeSize;
                     }
 
                     // Add new block to the table
@@ -143,7 +143,7 @@ namespace Zip
                 this.table.Add(this.dictionary[i].ToString(), this.nextBlockIndex++);
             }
 
-            this.codeSize = this.table.Count > 0 ? (this.table.Count - 1).ToString().Length : 0;
+            this.blockCodeSize = this.table.Count > 0 ? (this.table.Count - 1).ToString().Length : 0;
         }
     }
 }

@@ -26,9 +26,9 @@ namespace Zip
         private IList<string> table;
 
         /// <summary>
-        /// Current size of the block
+        /// Current size of the block code
         /// </summary>
-        private int blockSize;
+        private int blockCodeSize;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ZipDecrypt"/> class.
@@ -70,7 +70,7 @@ namespace Zip
             {
                 // Extract number of current block
                 int blockNumber;
-                if (!int.TryParse(remaining.Substring(0, this.blockSize), out blockNumber))
+                if (!int.TryParse(remaining.Substring(0, this.blockCodeSize), out blockNumber))
                 {
                     throw new ArgumentException("Invalid block index.");
                 }
@@ -110,12 +110,12 @@ namespace Zip
                     this.table.Add(newBlock);
                 }
 
-                remaining = remaining.Substring(this.blockSize);
+                remaining = remaining.Substring(this.blockCodeSize);
 
                 // Update current block length
                 if (this.table.Count.ToString().Length > (this.table.Count - 1).ToString().Length)
                 {
-                    ++this.blockSize;
+                    ++this.blockCodeSize;
                 }
             }
 
@@ -133,7 +133,7 @@ namespace Zip
                 this.table.Add(this.dictionary[i].ToString());
             }
 
-            this.blockSize = this.table.Count > 0 ? (this.table.Count - 1).ToString().Length : 0;
+            this.blockCodeSize = this.table.Count > 0 ? (this.table.Count - 1).ToString().Length : 0;
         }
     }
 }
