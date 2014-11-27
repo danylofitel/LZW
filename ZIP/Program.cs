@@ -21,9 +21,7 @@ namespace Zip
         public static void Main(string[] args)
         {
             /*
-            Test("абвгґдеєжзиіїйклмнопрстуфхцчшщьюя_!", "привіт_віка_сподіваюсь_ти_вже_здорова_в_мене_все_чудово_скучаю_чекаю!");
-            Console.WriteLine();
-            Test("benort", string.Concat(Enumerable.Repeat("tobeornottobeor", 1000)) + "tobe");
+            Test("benort", string.Concat(Enumerable.Repeat("tobeornottobeor", 10000)) + "tobe");
              * */
 
             do
@@ -79,7 +77,6 @@ namespace Zip
             sw.Start();
             var encrypted = zipper.Encrypt(message);
             Console.WriteLine("Encrypted in {0} milliseconds", sw.ElapsedMilliseconds);
-            Console.WriteLine(encrypted);
 
             sw.Restart();
             var decrypted = unzipper.Decrypt(encrypted);
