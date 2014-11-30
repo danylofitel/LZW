@@ -20,9 +20,11 @@ namespace Zip
         /// <param name="args">The arguments.</param>
         public static void Main(string[] args)
         {
-            /*
-            Test("benort", string.Concat(Enumerable.Repeat("tobeornottobeor", 10000)) + "tobe");
-             * */
+            Test("benort", string.Concat(Enumerable.Repeat("tobeornottobeor", 100000)) + "tobe");
+
+            Test(
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()`~-_=+[{]}\\|;:'\",<.>/? ",
+                "Hello World!!!");
 
             do
             {
@@ -42,12 +44,12 @@ namespace Zip
                             Console.WriteLine(encrypted);
                             if (unzipper.Decrypt(encrypted) != message)
                             {
-                                Console.WriteLine("Oops, I fucked up a bit.");
+                                Console.WriteLine("Oops, decrypted message did not match.");
                             }
                         }
                         catch (Exception)
                         {
-                            Console.WriteLine("You idiot, this message is fucking wrong!");
+                            Console.WriteLine("Sorry, this message is wrong!");
                         }
 
                         Console.WriteLine("Another message?");
@@ -57,7 +59,7 @@ namespace Zip
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine("You idiot, this is not a fucking alphabet, go back to school!");
+                    Console.WriteLine("Sorry, this is not a valid alphabet, make sure all characters are distinct!");
                 }
             }
             while (Console.ReadLine().ToLower() != "n");
