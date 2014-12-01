@@ -24,8 +24,10 @@ namespace ZipTest
         {
             string empty = string.Empty;
             var zipper = new ZipEncrypt(empty);
+            var zipperPT = new ZipEncryptPT(empty);
             var unzipper = new ZipDecrypt(empty);
             Assert.AreEqual(empty, zipper.Encrypt(empty));
+            Assert.AreEqual(empty, zipperPT.Encrypt(empty));
             Assert.AreEqual(empty, unzipper.Decrypt(empty));
         }
 
@@ -39,6 +41,18 @@ namespace ZipTest
             string empty = string.Empty;
             var zipper = new ZipEncrypt(empty);
             zipper.Encrypt("a");
+        }
+
+        /// <summary>
+        /// ZipEncryptPT, case of empty alphabet and non-empty messages, exceptions expected.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void EmptyAlphabetNonEmptyStringEncryptionPTTest()
+        {
+            string empty = string.Empty;
+            var zipperPT = new ZipEncryptPT(empty);
+            zipperPT.Encrypt("a");
         }
 
         /// <summary>
@@ -62,13 +76,14 @@ namespace ZipTest
             string fullAlphabet = "abcdefghijklmnopqrstuvwxyz";
 
             int maxAlphabetLength = 12;
-            int maxLength = 5;
+            int maxLength = 6;
 
             // For alphabets of different sizes
             for (int alphabetSize = 1; alphabetSize <= maxAlphabetLength; ++alphabetSize)
             {
                 string alphabet = fullAlphabet.Substring(0, alphabetSize);
                 var zipper = new ZipEncrypt(alphabet);
+                var zipperPT = new ZipEncryptPT(alphabet);
                 var unzipper = new ZipDecrypt(alphabet);
 
                 // For strings in current alphabet of different size
@@ -87,8 +102,10 @@ namespace ZipTest
                             mask >>= 1;
                         }
 
-                        string result = unzipper.Decrypt(zipper.Encrypt(message));
-                        Assert.AreEqual(message, result);
+                        string encrypted = zipper.Encrypt(message);
+                        string encryptedPT = zipperPT.Encrypt(message);
+                        Assert.AreEqual(encrypted, encryptedPT);
+                        Assert.AreEqual(message, unzipper.Decrypt(encrypted));
                     }
                 }
             }

@@ -20,11 +20,11 @@ namespace Zip
         /// <param name="args">The arguments.</param>
         public static void Main(string[] args)
         {
-            Test("benort", string.Concat(Enumerable.Repeat("tobeornottobeor", 100000)) + "tobe");
+            Test("benort", string.Concat(Enumerable.Repeat("tobeornottobeor", 10000)) + "tobe");
 
             Test(
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()`~-_=+[{]}\\|;:'\",<.>/? ",
-                "Hello World!!!");
+                string.Concat(Enumerable.Repeat("The quick brown fox jumps over the lazy dog.", 10000)));
 
             do
             {
@@ -73,19 +73,36 @@ namespace Zip
         private static void Test(string alphabet, string message)
         {
             var zipper = new ZipEncrypt(alphabet);
+            var zipperPT = new ZipEncryptPT(alphabet);
             var unzipper = new ZipDecrypt(alphabet);
+
             var sw = new System.Diagnostics.Stopwatch();
 
             sw.Start();
             var encrypted = zipper.Encrypt(message);
-            Console.WriteLine("Encrypted in {0} milliseconds", sw.ElapsedMilliseconds);
+            Console.WriteLine("Encrypted (hash table) in {0} milliseconds", sw.ElapsedMilliseconds);
+
+            sw.Restart();
+            var encryptedPT = zipperPT.Encrypt(message);
+            Console.WriteLine("Encrypted (prefix tree) in {0} milliseconds", sw.ElapsedMilliseconds);
+
+            if (encrypted != encryptedPT)
+            {
+                Console.WriteLine("Encryption results do not match!!!");
+                Console.WriteLine(encrypted);
+                Console.WriteLine(encryptedPT);
+                Console.WriteLine();
+            }
 
             sw.Restart();
             var decrypted = unzipper.Decrypt(encrypted);
             Console.WriteLine("Decrypted in {0} milliseconds", sw.ElapsedMilliseconds);
-
-            Console.WriteLine("Original size: {0}; encrypted size: {1}", message.Length, encrypted.Length);
-            Console.WriteLine(message == decrypted ? "Success!!!" : "Fail...");
+            if (message != decrypted)
+            {
+                Console.WriteLine("Decrypted text does not match with original!!!");
+            }
+            
+            Console.WriteLine();
         }
     }
 }

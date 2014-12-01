@@ -63,6 +63,7 @@ namespace Zip
         public string Encrypt(string message)
         {
             this.Initialize();
+
             foreach (var c in message)
             {
                 if (!this.table.ContainsKey(c.ToString()))
@@ -102,8 +103,7 @@ namespace Zip
                 bool newBlockFound = nextBlockSize < remaining.Length;
 
                 // Add the next encrypted block to the result
-                string newBlockIndex = this.table[remaining.Substring(0, nextBlockSize)].ToString().PadLeft(this.blockCodeSize, '0');
-                result += newBlockIndex;
+                result += this.table[remaining.Substring(0, nextBlockSize)].ToString().PadLeft(this.blockCodeSize, '0');
 
                 // Add new block to the table
                 if (newBlockFound)
@@ -126,6 +126,8 @@ namespace Zip
                 remaining = remaining.Substring(nextBlockSize);
             }
 
+            this.Cleanup();
+
             return result;
         }
 
@@ -144,6 +146,14 @@ namespace Zip
             }
 
             this.blockCodeSize = this.table.Count > 0 ? (this.table.Count - 1).ToString().Length : 0;
+        }
+
+        /// <summary>
+        /// Deletes reference to the table to allow garbage collector clean it up.
+        /// </summary>
+        private void Cleanup()
+        {
+            this.table = null;
         }
     }
 }

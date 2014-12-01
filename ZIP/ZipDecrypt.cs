@@ -119,6 +119,8 @@ namespace Zip
                 }
             }
 
+            this.Cleanup();
+
             return result;
         }
 
@@ -134,6 +136,14 @@ namespace Zip
             }
 
             this.blockCodeSize = this.table.Count > 0 ? (this.table.Count - 1).ToString().Length : 0;
+        }
+
+        /// <summary>
+        /// Deletes reference to the table to allow garbage collector clean it up.
+        /// </summary>
+        private void Cleanup()
+        {
+            this.table = null;
         }
     }
 }
