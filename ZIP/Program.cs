@@ -4,10 +4,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Zip
+namespace ZIP
 {
     using System;
     using System.Linq;
+    using System.Text;
 
     /// <summary>
     /// Demo class
@@ -20,11 +21,9 @@ namespace Zip
         /// <param name="args">The arguments.</param>
         public static void Main(string[] args)
         {
-            Test("benort", string.Concat(Enumerable.Repeat("tobeornottobeor", 10000)) + "tobe");
+            Test("benort", string.Concat(Enumerable.Repeat("tobeornottobeor", 100000)) + "tobe");
 
-            Test(
-                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()`~-_=+[{]}\\|;:'\",<.>/? ",
-                string.Concat(Enumerable.Repeat("The quick brown fox jumps over the lazy dog.", 10000)));
+            Test("0123456789", RandomNumericString(100000));
 
             do
             {
@@ -32,8 +31,8 @@ namespace Zip
                 var alphabet = Console.ReadLine();
                 try
                 {
-                    var zipper = new ZipEncrypt(alphabet);
-                    var unzipper = new ZipDecrypt(alphabet);
+                    var zipper = new LZWCompress(alphabet);
+                    var unzipper = new LZWDecompress(alphabet);
                     do
                     {
                         Console.WriteLine("Message:");
@@ -72,19 +71,19 @@ namespace Zip
         /// <param name="message">The message.</param>
         private static void Test(string alphabet, string message)
         {
-            var zipper = new ZipEncrypt(alphabet);
-            var zipperPT = new ZipEncryptPT(alphabet);
-            var unzipper = new ZipDecrypt(alphabet);
+            var zipper = new LZWCompress(alphabet);
+            var zipperPT = new LZWCompressPT(alphabet);
+            var unzipper = new LZWDecompress(alphabet);
 
             var sw = new System.Diagnostics.Stopwatch();
 
             sw.Start();
             var encrypted = zipper.Encrypt(message);
-            Console.WriteLine("Encrypted (hash table) in {0} milliseconds", sw.ElapsedMilliseconds);
+            Console.WriteLine("Encrypted (HT) in {0} milliseconds", sw.ElapsedMilliseconds);
 
             sw.Restart();
             var encryptedPT = zipperPT.Encrypt(message);
-            Console.WriteLine("Encrypted (prefix tree) in {0} milliseconds", sw.ElapsedMilliseconds);
+            Console.WriteLine("Encrypted (PT) in {0} milliseconds", sw.ElapsedMilliseconds);
 
             if (encrypted != encryptedPT)
             {
@@ -96,13 +95,34 @@ namespace Zip
 
             sw.Restart();
             var decrypted = unzipper.Decrypt(encrypted);
-            Console.WriteLine("Decrypted in {0} milliseconds", sw.ElapsedMilliseconds);
+            Console.WriteLine("Decrypted in       {0} milliseconds", sw.ElapsedMilliseconds);
             if (message != decrypted)
             {
                 Console.WriteLine("Decrypted text does not match with original!!!");
+                Console.WriteLine(message);
+                Console.WriteLine(decrypted);
             }
-            
+
             Console.WriteLine();
+        }
+
+        /// <summary>
+        /// Returns a random numeric string of specified length.
+        /// </summary>
+        /// <param name="size">Size of the string.</param>
+        /// <returns>A random numeric string.</returns>
+        private static string RandomNumericString(int size)
+        {
+            StringBuilder builder = new StringBuilder();
+            Random random = new Random();
+            char ch;
+            for (int i = 0; i < size; i++)
+            {
+                ch = (random.Next() % 10).ToString()[0];
+                builder.Append(ch);
+            }
+
+            return builder.ToString();
         }
     }
 }

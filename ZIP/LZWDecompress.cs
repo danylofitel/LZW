@@ -1,29 +1,30 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ZipDecrypt.cs" company="FTL">
+// <copyright file="LZWDecompress.cs" company="FTL">
 //     FTL Inc.
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Zip
+namespace ZIP
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
 
     /// <summary>
-    /// Class for Zip decryption
+    /// Class for LZW decompression
     /// </summary>
-    public class ZipDecrypt
+    public class LZWDecompress
     {
         /// <summary>
-        /// The primary dictionary
+        /// The primary alphabet
         /// </summary>
-        private readonly char[] dictionary;
+        private readonly char[] alphabet;
 
         /// <summary>
         /// Table of block indices
         /// </summary>
-        private IList<string> table;
+        private readonly IList<string> table;
 
         /// <summary>
         /// Current size of the block code
@@ -31,25 +32,27 @@ namespace Zip
         private int blockCodeSize;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ZipDecrypt"/> class.
+        /// Initializes a new instance of the <see cref="LZWDecompress"/> class.
         /// </summary>
-        /// <param name="dictionary">The dictionary.</param>
-        public ZipDecrypt(string dictionary)
+        /// <param name="alphabet">The alphabet.</param>
+        public LZWDecompress(string alphabet)
         {
-            if (dictionary.Distinct().Count() != dictionary.Count())
+            if (alphabet.Distinct().Count() != alphabet.Count())
             {
                 throw new ArgumentException("Dictionary elements are not distinct.");
             }
 
-            this.dictionary = dictionary.ToCharArray();
-            Array.Sort(this.dictionary);
+            this.alphabet = alphabet.ToCharArray();
+            Array.Sort(this.alphabet);
+
+            this.table = new List<string>((alphabet.Length * 2) + 1);
         }
 
         /// <summary>
         /// Decrypts the specified encrypted message.
         /// </summary>
         /// <param name="message">Encrypted message.</param>
-        /// <returns>A message decrypted in the specified dictionary</returns>
+        /// <returns>A message decrypted in the specified alphabet</returns>
         public string Decrypt(string message)
         {
             foreach (char c in message)
@@ -62,7 +65,7 @@ namespace Zip
 
             this.Initialize();
 
-            string result = string.Empty;
+            StringBuilder result = new StringBuilder();
             string remaining = message;
             string newBlock = null;
 
@@ -82,7 +85,7 @@ namespace Zip
                     string block = this.table[blockNumber];
 
                     // Add it to encrypted message
-                    result += block;
+                    result.Append(block);
 
                     // Recreate and add to the table a new block from the previous step
                     if (newBlock != null)
@@ -106,7 +109,7 @@ namespace Zip
 
                     // Current block is the same as previous new one
                     newBlock += newBlock[0];
-                    result += newBlock;
+                    result.Append(newBlock);
                     this.table.Add(newBlock);
                 }
 
@@ -121,7 +124,7 @@ namespace Zip
 
             this.Cleanup();
 
-            return result;
+            return result.ToString();
         }
 
         /// <summary>
@@ -129,10 +132,9 @@ namespace Zip
         /// </summary>
         private void Initialize()
         {
-            this.table = new List<string>();
-            for (int i = 0; i < this.dictionary.Length; i++)
+            for (int i = 0; i < this.alphabet.Length; i++)
             {
-                this.table.Add(this.dictionary[i].ToString());
+                this.table.Add(this.alphabet[i].ToString());
             }
 
             this.blockCodeSize = this.table.Count > 0 ? (this.table.Count - 1).ToString().Length : 0;
@@ -143,7 +145,7 @@ namespace Zip
         /// </summary>
         private void Cleanup()
         {
-            this.table = null;
+            this.table.Clear();
         }
     }
 }

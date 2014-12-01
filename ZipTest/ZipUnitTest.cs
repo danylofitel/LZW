@@ -7,8 +7,9 @@
 namespace ZipTest
 {
     using System;
+    using System.Text;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Zip;
+    using ZIP;
 
     /// <summary>
     /// Unit cases for both ZipEncrypt and ZipDecrypt
@@ -23,9 +24,9 @@ namespace ZipTest
         public void EmptyStringTest()
         {
             string empty = string.Empty;
-            var zipper = new ZipEncrypt(empty);
-            var zipperPT = new ZipEncryptPT(empty);
-            var unzipper = new ZipDecrypt(empty);
+            var zipper = new LZWCompress(empty);
+            var zipperPT = new LZWCompressPT(empty);
+            var unzipper = new LZWDecompress(empty);
             Assert.AreEqual(empty, zipper.Encrypt(empty));
             Assert.AreEqual(empty, zipperPT.Encrypt(empty));
             Assert.AreEqual(empty, unzipper.Decrypt(empty));
@@ -39,7 +40,7 @@ namespace ZipTest
         public void EmptyAlphabetNonEmptyStringEncryptionTest()
         {
             string empty = string.Empty;
-            var zipper = new ZipEncrypt(empty);
+            var zipper = new LZWCompress(empty);
             zipper.Encrypt("a");
         }
 
@@ -51,7 +52,7 @@ namespace ZipTest
         public void EmptyAlphabetNonEmptyStringEncryptionPTTest()
         {
             string empty = string.Empty;
-            var zipperPT = new ZipEncryptPT(empty);
+            var zipperPT = new LZWCompressPT(empty);
             zipperPT.Encrypt("a");
         }
 
@@ -63,7 +64,7 @@ namespace ZipTest
         public void EmptyAlphabetNonEmptyStringDecryptionTest()
         {
             string empty = string.Empty;
-            var unzipper = new ZipDecrypt(empty);
+            var unzipper = new LZWDecompress(empty);
             unzipper.Decrypt("0");
         }
 
@@ -78,13 +79,15 @@ namespace ZipTest
             int maxAlphabetLength = 12;
             int maxLength = 6;
 
+            StringBuilder builder = new StringBuilder();
+
             // For alphabets of different sizes
             for (int alphabetSize = 1; alphabetSize <= maxAlphabetLength; ++alphabetSize)
             {
                 string alphabet = fullAlphabet.Substring(0, alphabetSize);
-                var zipper = new ZipEncrypt(alphabet);
-                var zipperPT = new ZipEncryptPT(alphabet);
-                var unzipper = new ZipDecrypt(alphabet);
+                var zipper = new LZWCompress(alphabet);
+                var zipperPT = new LZWCompressPT(alphabet);
+                var unzipper = new LZWDecompress(alphabet);
 
                 // For strings in current alphabet of different size
                 for (int strlen = 0; strlen <= maxLength; ++strlen)
@@ -94,14 +97,15 @@ namespace ZipTest
 
                     for (int i = 0; i < strings; ++i)
                     {
-                        string message = string.Empty;
+                        builder.Clear();
                         int mask = i;
                         for (int shift = 0; shift < strlen; ++shift)
                         {
-                            message += alphabet[mask % alphabet.Length];
+                            builder.Append(alphabet[mask % alphabet.Length]);
                             mask >>= 1;
                         }
 
+                        string message = builder.ToString();
                         string encrypted = zipper.Encrypt(message);
                         string encryptedPT = zipperPT.Encrypt(message);
                         Assert.AreEqual(encrypted, encryptedPT);

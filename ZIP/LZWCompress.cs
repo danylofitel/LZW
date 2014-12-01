@@ -1,29 +1,30 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ZipEncrypt.cs" company="FTL">
+// <copyright file="LZWCompress.cs" company="FTL">
 //     FTL Inc.
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Zip
+namespace ZIP
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
 
     /// <summary>
-    /// Class for Zip encryption
+    /// Class for LZW compression, implementation uses a hash table
     /// </summary>
-    public class ZipEncrypt
+    public class LZWCompress
     {
         /// <summary>
-        /// The primary dictionary
+        /// The alphabet
         /// </summary>
-        private readonly char[] dictionary;
+        private readonly char[] alphabet;
 
         /// <summary>
         /// Table of block indices
         /// </summary>
-        private IDictionary<string, int> table;
+        private readonly IDictionary<string, int> table;
 
         /// <summary>
         /// Index of the next block
@@ -41,18 +42,20 @@ namespace Zip
         private int blockCodeSize;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ZipEncrypt"/> class.
+        /// Initializes a new instance of the <see cref="LZWCompress"/> class.
         /// </summary>
-        /// <param name="dictionary">The dictionary.</param>
-        public ZipEncrypt(string dictionary)
+        /// <param name="alphabet">The alphabet.</param>
+        public LZWCompress(string alphabet)
         {
-            if (dictionary.Distinct().Count() != dictionary.Count())
+            if (alphabet.Distinct().Count() != alphabet.Count())
             {
-                throw new ArgumentException("Dictionary elements are not distinct.");
+                throw new ArgumentException("alphabet elements are not distinct.");
             }
 
-            this.dictionary = dictionary.ToCharArray();
-            Array.Sort(this.dictionary);
+            this.alphabet = alphabet.ToCharArray();
+            Array.Sort(this.alphabet);
+
+            this.table = new Dictionary<string, int>((alphabet.Length * 2) + 1);
         }
 
         /// <summary>
@@ -68,11 +71,11 @@ namespace Zip
             {
                 if (!this.table.ContainsKey(c.ToString()))
                 {
-                    throw new ArgumentException(string.Format("Character {0} is not in the dictionary.", c));
+                    throw new ArgumentException(string.Format("Character {0} is not in the alphabet.", c));
                 }
             }
 
-            string result = string.Empty;
+            StringBuilder result = new StringBuilder();
             string remaining = message;
 
             while (remaining.Length > 0)
@@ -103,22 +106,22 @@ namespace Zip
                 bool newBlockFound = nextBlockSize < remaining.Length;
 
                 // Add the next encrypted block to the result
-                result += this.table[remaining.Substring(0, nextBlockSize)].ToString().PadLeft(this.blockCodeSize, '0');
+                result.Append(this.table[remaining.Substring(0, nextBlockSize)].ToString().PadLeft(this.blockCodeSize, '0'));
 
-                // Add new block to the table
+                // Check if new block has been found
                 if (newBlockFound)
                 {
-                    // Update current block length
-                    if (this.nextBlockIndex.ToString().Length > this.blockCodeSize)
-                    {
-                        ++this.blockCodeSize;
-                    }
-
                     // Add new block to the table
                     this.table.Add(remaining.Substring(0, nextBlockSize + 1), this.nextBlockIndex++);
                     if (nextBlockSize + 1 > this.maxBlockSize)
                     {
                         this.maxBlockSize = nextBlockSize + 1;
+                    }
+
+                    // Update current block length
+                    if ((this.nextBlockIndex - 1).ToString().Length > this.blockCodeSize)
+                    {
+                        ++this.blockCodeSize;
                     }
                 }
 
@@ -128,7 +131,7 @@ namespace Zip
 
             this.Cleanup();
 
-            return result;
+            return result.ToString();
         }
 
         /// <summary>
@@ -136,13 +139,12 @@ namespace Zip
         /// </summary>
         private void Initialize()
         {
-            this.maxBlockSize = this.dictionary.Length > 0 ? 1 : 0;
+            this.maxBlockSize = this.alphabet.Length > 0 ? 1 : 0;
             this.nextBlockIndex = 0;
 
-            this.table = new Dictionary<string, int>();
-            for (int i = 0; i < this.dictionary.Length; i++)
+            for (int i = 0; i < this.alphabet.Length; i++)
             {
-                this.table.Add(this.dictionary[i].ToString(), this.nextBlockIndex++);
+                this.table.Add(this.alphabet[i].ToString(), this.nextBlockIndex++);
             }
 
             this.blockCodeSize = this.table.Count > 0 ? (this.table.Count - 1).ToString().Length : 0;
@@ -153,7 +155,7 @@ namespace Zip
         /// </summary>
         private void Cleanup()
         {
-            this.table = null;
+            this.table.Clear();
         }
     }
 }
